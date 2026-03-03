@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 30 20% 97%;
     --foreground: 220 20% 14%;
 
     --card: 0 0% 100%;
@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 14%;
 
-    --primary: 4 78% 68%;
+    --primary: 4 78% 63%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
@@ -26,7 +26,7 @@ All colors MUST be HSL.
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 46%;
 
-    --accent: 4 78% 95%;
+    --accent: 4 60% 96%;
     --accent-foreground: 4 78% 40%;
 
     --destructive: 0 84% 60%;
@@ -34,18 +34,18 @@ All colors MUST be HSL.
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 4 78% 68%;
+    --ring: 4 78% 63%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 10% 36%;
-    --sidebar-primary: 4 78% 68%;
+    --sidebar-primary: 4 78% 63%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 4 78% 96%;
     --sidebar-accent-foreground: 4 78% 40%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 4 78% 68%;
+    --sidebar-ring: 4 78% 63%;
 
     --success: 152 60% 42%;
     --success-foreground: 0 0% 100%;
@@ -54,9 +54,12 @@ All colors MUST be HSL.
     --info: 210 80% 56%;
     --info-foreground: 0 0% 100%;
 
-    --criterion-category: 4 78% 68%;
-    --criterion-stage: 210 80% 56%;
-    --criterion-network: 152 60% 42%;
+    --criterion-category: 4 68% 58%;
+    --criterion-stage: 210 70% 52%;
+    --criterion-network: 152 55% 40%;
+
+    --shadow-card: 0 1px 3px 0 hsl(220 20% 14% / 0.04), 0 4px 14px -2px hsl(220 20% 14% / 0.06);
+    --shadow-card-hover: 0 2px 8px 0 hsl(220 20% 14% / 0.06), 0 8px 24px -4px hsl(220 20% 14% / 0.1);
   }
 }
 

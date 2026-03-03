@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Users, X } from "lucide-react";
+import { Plus, Trash2, Users, X, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -76,7 +76,7 @@ const VALUE_DISPLAY: Record<string, string> = {
 let counter = 0;
 const uid = () => `c_${++counter}`;
 
-/* ── Field row (label + content) ── */
+/* ── Field row ── */
 function FieldRow({
   label,
   required,
@@ -89,12 +89,12 @@ function FieldRow({
   secondary?: boolean;
 }) {
   return (
-    <div className="grid grid-cols-[200px_1fr] items-center gap-6 px-6 py-4">
+    <div className="grid grid-cols-[220px_1fr] items-center gap-6 px-6 py-4">
       <span
         className={
           secondary
             ? "text-[13px] text-muted-foreground leading-snug"
-            : "text-[13px] font-semibold text-foreground"
+            : "text-[13px] font-semibold text-foreground tracking-tight"
         }
       >
         {label}
@@ -108,12 +108,12 @@ function FieldRow({
 /* ── AND divider ── */
 function AndDivider() {
   return (
-    <div className="flex items-center gap-3 px-6 py-1.5 bg-muted/60">
-      <div className="h-px flex-1 bg-border" />
-      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.15em] select-none">
+    <div className="flex items-center gap-3 px-8">
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+      <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em] select-none py-1">
         et
       </span>
-      <div className="h-px flex-1 bg-border" />
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
     </div>
   );
 }
@@ -131,60 +131,75 @@ function JuryCard({
   onOpenMembers: () => void;
 }) {
   return (
-    <div className="border border-border rounded-lg bg-card overflow-hidden">
-      {/* Name */}
-      <FieldRow label="Nom">
-        <span className="text-sm text-foreground">{jury.name}</span>
-      </FieldRow>
-
-      <div className="border-t border-border" />
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="group rounded-xl bg-card overflow-hidden transition-shadow duration-300"
+      style={{ boxShadow: "var(--shadow-card)" }}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-card-hover)")}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-card)")}
+    >
+      {/* Name header */}
+      <div className="px-6 py-4 bg-gradient-to-r from-accent/60 to-accent/30">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <span className="text-primary text-sm font-bold">{jury.name.charAt(0).toUpperCase()}</span>
+          </div>
+          <span className="text-[15px] font-semibold text-foreground tracking-tight">{jury.name}</span>
+        </div>
+      </div>
 
       {/* Criteria */}
-      {jury.criteria.map((c, i) => (
-        <div key={c.id}>
-          {i > 0 && <AndDivider />}
-          <FieldRow
-            label={TYPE_OPTIONS.find((t) => t.value === c.type)?.label ?? ""}
-            secondary
-          >
-            <Badge variant={c.type}>{VALUE_DISPLAY[c.value] ?? c.value}</Badge>
-          </FieldRow>
-        </div>
-      ))}
-
-      <div className="border-t border-border" />
+      <div className="py-1">
+        {jury.criteria.map((c, i) => (
+          <div key={c.id}>
+            {i > 0 && <AndDivider />}
+            <FieldRow
+              label={TYPE_OPTIONS.find((t) => t.value === c.type)?.label ?? ""}
+              secondary
+            >
+              <Badge variant={c.type} className="text-[12px] px-3 py-1">
+                {VALUE_DISPLAY[c.value] ?? c.value}
+              </Badge>
+            </FieldRow>
+          </div>
+        ))}
+      </div>
 
       {/* Members */}
-      <div className="flex items-center justify-between px-6 py-3">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span className="text-[13px] text-muted-foreground">
-            Ce jury est actuellement composé de <strong className="text-foreground font-medium">{jury.members.length} membre{jury.members.length !== 1 ? "s" : ""}</strong>
-          </span>
-        </div>
+      <div className="border-t border-border/60">
         <button
           onClick={onOpenMembers}
-          className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
+          className="flex items-center justify-between w-full px-6 py-3.5 hover:bg-accent/30 transition-colors"
         >
-          Voir et modifier les membres
+          <div className="flex items-center gap-2.5">
+            <div className="h-7 w-7 rounded-full bg-primary/8 flex items-center justify-center">
+              <Users className="h-3.5 w-3.5 text-primary/70" />
+            </div>
+            <span className="text-[13px] text-muted-foreground">
+              Composé de <strong className="text-foreground font-medium">{jury.members.length} membre{jury.members.length !== 1 ? "s" : ""}</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-1 text-[12px] font-medium text-primary/80 group-hover:text-primary transition-colors">
+            Voir les membres
+            <ChevronRight className="h-3.5 w-3.5" />
+          </div>
         </button>
       </div>
 
-      <div className="border-t border-border" />
-
       {/* Actions */}
-      <div className="flex items-center justify-end gap-2 px-6 py-3">
-        <Button size="sm" onClick={onEdit}>
+      <div className="border-t border-border/60 flex items-center justify-end gap-2 px-6 py-3">
+        <Button size="sm" variant="outline" className="text-[12px] h-8" onClick={onEdit}>
           Modifier
         </Button>
         <button
           onClick={onDelete}
-          className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/10"
+          className="text-muted-foreground/50 hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/8"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -229,18 +244,22 @@ function JuryForm({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="border border-primary/25 rounded-lg bg-card overflow-hidden shadow-sm"
+      className="rounded-xl bg-card overflow-hidden ring-2 ring-primary/20"
+      style={{ boxShadow: "var(--shadow-card-hover)" }}
     >
       {/* Name */}
-      <FieldRow label="Nom" required>
-        <Input
-          value={jury.name}
-          onChange={(e) => onChange({ ...jury, name: e.target.value })}
-          placeholder="Ex : Jury Innovation"
-        />
-      </FieldRow>
+      <div className="px-6 py-4 bg-gradient-to-r from-primary/6 to-transparent">
+        <FieldRow label="Nom du jury" required>
+          <Input
+            value={jury.name}
+            onChange={(e) => onChange({ ...jury, name: e.target.value })}
+            placeholder="Ex : Jury Innovation"
+            className="bg-card"
+          />
+        </FieldRow>
+      </div>
 
-      <div className="border-t border-border" />
+      <div className="border-t border-border/60" />
 
       {/* Criteria */}
       <AnimatePresence initial={false}>
@@ -266,7 +285,7 @@ function JuryForm({
                       updateCriterion(criterion.id, { type: val as CriterionType, value: "" })
                     }
                   >
-                    <SelectTrigger className="flex-1">
+                    <SelectTrigger className="flex-1 bg-card">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -280,7 +299,7 @@ function JuryForm({
                   {jury.criteria.length > 1 && (
                     <button
                       onClick={() => removeCriterion(criterion.id)}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                      className="text-muted-foreground/50 hover:text-destructive transition-colors p-1"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -294,7 +313,7 @@ function JuryForm({
                   value={criterion.value}
                   onValueChange={(val) => updateCriterion(criterion.id, { value: val })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-card">
                     <SelectValue placeholder="Choisissez une valeur" />
                   </SelectTrigger>
                   <SelectContent>
@@ -311,14 +330,14 @@ function JuryForm({
         })}
       </AnimatePresence>
 
-      <div className="border-t border-border" />
+      <div className="border-t border-border/60" />
 
       {/* Footer */}
-      <div className="flex items-center justify-between px-6 py-3">
+      <div className="flex items-center justify-between px-6 py-3.5">
         {usedTypes.length < 3 ? (
           <button
             onClick={addCriterion}
-            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+            className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5"
           >
             <Plus className="h-3.5 w-3.5" />
             Ajouter un critère
@@ -327,17 +346,17 @@ function JuryForm({
           <div />
         )}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={onCancel}>
+          <Button variant="ghost" size="sm" className="text-[12px] h-8" onClick={onCancel}>
             Annuler
           </Button>
-          <Button size="sm" onClick={onSave}>
+          <Button size="sm" className="text-[12px] h-8 px-5" onClick={onSave}>
             Sauvegarder
           </Button>
           <button
             onClick={onDelete}
-            className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/10"
+            className="text-muted-foreground/50 hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/8"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -393,8 +412,8 @@ export default function JuryPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Page header */}
-      <div className="bg-accent/50 border-b border-primary/10 px-6 py-5">
-        <h1 className="text-sm font-bold text-foreground uppercase tracking-wide">
+      <div className="bg-gradient-to-br from-accent via-accent/40 to-background border-b border-border/50 px-8 py-7">
+        <h1 className="text-base font-bold text-foreground tracking-tight">
           Création des jurys
         </h1>
         <p className="text-[13px] text-muted-foreground mt-2 leading-relaxed max-w-2xl">
@@ -405,13 +424,15 @@ export default function JuryPage() {
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-8 space-y-5">
-        {/* Create link */}
+      <div className="max-w-3xl mx-auto px-8 py-8 space-y-5">
+        {/* Create button */}
         <button
           onClick={startNew}
-          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+          className="inline-flex items-center gap-2 text-[13px] font-semibold text-primary hover:text-primary/80 transition-colors group"
         >
-          <Plus className="h-4 w-4" />
+          <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+            <Plus className="h-3.5 w-3.5" />
+          </div>
           Créer un jury
         </button>
 
