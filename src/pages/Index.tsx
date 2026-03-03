@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, Users, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import MembersModal, { type Member } from "@/components/jury/MembersModal";
 
 type CriterionType = "category" | "stage" | "network";
 
@@ -19,6 +20,7 @@ interface JuryData {
   id: string;
   name: string;
   criteria: Criterion[];
+  members: Member[];
 }
 
 const TYPE_OPTIONS: { value: CriterionType; label: string }[] = [
@@ -121,10 +123,12 @@ function JuryCard({
   jury,
   onEdit,
   onDelete,
+  onOpenMembers,
 }: {
   jury: JuryData;
   onEdit: () => void;
   onDelete: () => void;
+  onOpenMembers: () => void;
 }) {
   return (
     <div className="border border-border rounded-lg bg-card overflow-hidden">
@@ -150,10 +154,28 @@ function JuryCard({
 
       <div className="border-t border-border" />
 
+      {/* Members */}
+      <div className="flex items-center justify-between px-6 py-3">
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <span className="text-[13px] text-muted-foreground">
+            Ce jury est actuellement composé de <strong className="text-foreground font-medium">{jury.members.length} membre{jury.members.length !== 1 ? "s" : ""}</strong>
+          </span>
+        </div>
+        <button
+          onClick={onOpenMembers}
+          className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
+        >
+          Voir et modifier les membres
+        </button>
+      </div>
+
+      <div className="border-t border-border" />
+
       {/* Actions */}
       <div className="flex items-center justify-end gap-2 px-6 py-3">
         <Button size="sm" onClick={onEdit}>
-          Sauvegarder
+          Modifier
         </Button>
         <button
           onClick={onDelete}
@@ -333,12 +355,19 @@ export default function JuryPage() {
         { id: "x1", type: "category", value: "ecologie" },
         { id: "x2", type: "stage", value: "prototypage" },
       ],
+      members: [
+        { id: "u1", name: "Marie Dupont", email: "marie.dupont@entreprise.com" },
+        { id: "u3", name: "Sophie Bernard", email: "sophie.bernard@entreprise.com" },
+      ],
     },
   ]);
   const [editing, setEditing] = useState<JuryData | null>(null);
+  const [membersJuryId, setMembersJuryId] = useState<string | null>(null);
+
+  const membersJury = juries.find((j) => j.id === membersJuryId) ?? null;
 
   const startNew = () => {
-    setEditing({ id: `j_${Date.now()}`, name: "", criteria: [{ id: uid(), type: "category", value: "" }] });
+    setEditing({ id: `j_${Date.now()}`, name: "", criteria: [{ id: uid(), type: "category", value: "" }], members: [] });
   };
 
   const save = () => {
@@ -355,6 +384,10 @@ export default function JuryPage() {
     setJuries(juries.filter((j) => j.id !== id));
     if (editing?.id === id) setEditing(null);
     toast.success("Jury supprimé");
+  };
+
+  const updateMembers = (juryId: string, members: Member[]) => {
+    setJuries(juries.map((j) => (j.id === juryId ? { ...j, members } : j)));
   };
 
   return (
@@ -407,9 +440,21 @@ export default function JuryPage() {
                 setEditing({ ...jury, criteria: jury.criteria.map((c) => ({ ...c })) })
               }
               onDelete={() => deleteJury(jury.id)}
+              onOpenMembers={() => setMembersJuryId(jury.id)}
             />
           ))}
       </div>
+
+      {/* Members modal */}
+      {membersJury && (
+        <MembersModal
+          open={!!membersJuryId}
+          onOpenChange={(open) => { if (!open) setMembersJuryId(null); }}
+          members={membersJury.members}
+          onMembersChange={(m) => updateMembers(membersJury.id, m)}
+          juryName={membersJury.name}
+        />
+      )}
     </div>
   );
 }
