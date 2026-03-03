@@ -74,6 +74,256 @@ const VALUE_DISPLAY: Record<string, string> = {
 let counter = 0;
 const uid = () => `c_${++counter}`;
 
+/* ── Field row (label + content) ── */
+function FieldRow({
+  label,
+  required,
+  children,
+  secondary,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+  secondary?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-[200px_1fr] items-center gap-6 px-6 py-4">
+      <span
+        className={
+          secondary
+            ? "text-[13px] text-muted-foreground leading-snug"
+            : "text-[13px] font-semibold text-foreground"
+        }
+      >
+        {label}
+        {required && <span className="text-primary ml-0.5">*</span>}
+      </span>
+      <div>{children}</div>
+    </div>
+  );
+}
+
+/* ── AND divider ── */
+function AndDivider() {
+  return (
+    <div className="flex items-center gap-3 px-6 py-1.5 bg-muted/60">
+      <div className="h-px flex-1 bg-border" />
+      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.15em] select-none">
+        et
+      </span>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+/* ── Jury card (read mode) ── */
+function JuryCard({
+  jury,
+  onEdit,
+  onDelete,
+}: {
+  jury: JuryData;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="border border-border rounded-lg bg-card overflow-hidden">
+      {/* Name */}
+      <FieldRow label="Nom">
+        <span className="text-sm text-foreground">{jury.name}</span>
+      </FieldRow>
+
+      <div className="border-t border-border" />
+
+      {/* Criteria */}
+      {jury.criteria.map((c, i) => (
+        <div key={c.id}>
+          {i > 0 && <AndDivider />}
+          <FieldRow
+            label={TYPE_OPTIONS.find((t) => t.value === c.type)?.label ?? ""}
+            secondary
+          >
+            <Badge variant={c.type}>{VALUE_DISPLAY[c.value] ?? c.value}</Badge>
+          </FieldRow>
+        </div>
+      ))}
+
+      <div className="border-t border-border" />
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-2 px-6 py-3">
+        <Button size="sm" onClick={onEdit}>
+          Sauvegarder
+        </Button>
+        <button
+          onClick={onDelete}
+          className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/10"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Jury edit form ── */
+function JuryForm({
+  jury,
+  onChange,
+  onSave,
+  onCancel,
+  onDelete,
+}: {
+  jury: JuryData;
+  onChange: (j: JuryData) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onDelete: () => void;
+}) {
+  const usedTypes = jury.criteria.map((c) => c.type);
+
+  const addCriterion = () => {
+    const available = (["category", "stage", "network"] as CriterionType[]).filter(
+      (t) => !usedTypes.includes(t)
+    );
+    if (!available.length) return;
+    onChange({ ...jury, criteria: [...jury.criteria, { id: uid(), type: available[0], value: "" }] });
+  };
+
+  const updateCriterion = (id: string, updates: Partial<Criterion>) => {
+    onChange({
+      ...jury,
+      criteria: jury.criteria.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+    });
+  };
+
+  const removeCriterion = (id: string) => {
+    if (jury.criteria.length <= 1) return;
+    onChange({ ...jury, criteria: jury.criteria.filter((c) => c.id !== id) });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="border border-primary/25 rounded-lg bg-card overflow-hidden shadow-sm"
+    >
+      {/* Name */}
+      <FieldRow label="Nom" required>
+        <Input
+          value={jury.name}
+          onChange={(e) => onChange({ ...jury, name: e.target.value })}
+          placeholder="Ex : Jury Innovation"
+        />
+      </FieldRow>
+
+      <div className="border-t border-border" />
+
+      {/* Criteria */}
+      <AnimatePresence initial={false}>
+        {jury.criteria.map((criterion, i) => {
+          const availableTypes = TYPE_OPTIONS.filter(
+            (t) => t.value === criterion.type || !usedTypes.includes(t.value)
+          );
+          return (
+            <motion.div
+              key={criterion.id}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              {i > 0 && <AndDivider />}
+
+              {/* Type */}
+              <FieldRow label="Quels projets ce jury peut-il modérer ?" required>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={criterion.type}
+                    onValueChange={(val) =>
+                      updateCriterion(criterion.id, { type: val as CriterionType, value: "" })
+                    }
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTypes.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {jury.criteria.length > 1 && (
+                    <button
+                      onClick={() => removeCriterion(criterion.id)}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </FieldRow>
+
+              {/* Value */}
+              <FieldRow label={VALUE_LABEL_MAP[criterion.type]} required>
+                <Select
+                  value={criterion.value}
+                  onValueChange={(val) => updateCriterion(criterion.id, { value: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisissez une valeur" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VALUE_OPTIONS[criterion.type].map((v) => (
+                      <SelectItem key={v.value} value={v.value}>
+                        {v.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FieldRow>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+
+      <div className="border-t border-border" />
+
+      {/* Footer */}
+      <div className="flex items-center justify-between px-6 py-3">
+        {usedTypes.length < 3 ? (
+          <button
+            onClick={addCriterion}
+            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Ajouter un critère
+          </button>
+        ) : (
+          <div />
+        )}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onCancel}>
+            Annuler
+          </Button>
+          <Button size="sm" onClick={onSave}>
+            Sauvegarder
+          </Button>
+          <button
+            onClick={onDelete}
+            className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/10"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Page ── */
 export default function JuryPage() {
   const [juries, setJuries] = useState<JuryData[]>([
     {
@@ -85,35 +335,10 @@ export default function JuryPage() {
       ],
     },
   ]);
-
   const [editing, setEditing] = useState<JuryData | null>(null);
 
   const startNew = () => {
     setEditing({ id: `j_${Date.now()}`, name: "", criteria: [{ id: uid(), type: "category", value: "" }] });
-  };
-
-  const usedTypes = editing?.criteria.map((c) => c.type) ?? [];
-
-  const addCriterion = () => {
-    if (!editing) return;
-    const available = (["category", "stage", "network"] as CriterionType[]).filter(
-      (t) => !usedTypes.includes(t)
-    );
-    if (!available.length) return;
-    setEditing({ ...editing, criteria: [...editing.criteria, { id: uid(), type: available[0], value: "" }] });
-  };
-
-  const updateCriterion = (id: string, updates: Partial<Criterion>) => {
-    if (!editing) return;
-    setEditing({
-      ...editing,
-      criteria: editing.criteria.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-    });
-  };
-
-  const removeCriterion = (id: string) => {
-    if (!editing || editing.criteria.length <= 1) return;
-    setEditing({ ...editing, criteria: editing.criteria.filter((c) => c.id !== id) });
   };
 
   const save = () => {
@@ -135,16 +360,20 @@ export default function JuryPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Page header */}
-      <div className="bg-accent/60 border-b border-primary/10 px-6 py-4">
-        <h1 className="text-base font-semibold text-foreground uppercase tracking-wide">Création des jurys</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Un jury est un groupe d'utilisateurs qui évalue des projets. Commencez par choisir le nom du jury et le type de projet qu'il peut modérer, puis composez le jury.
-          Vous pouvez désormais <strong>croiser plusieurs critères</strong> pour affiner le périmètre.
+      <div className="bg-accent/50 border-b border-primary/10 px-6 py-5">
+        <h1 className="text-sm font-bold text-foreground uppercase tracking-wide">
+          Création des jurys
+        </h1>
+        <p className="text-[13px] text-muted-foreground mt-2 leading-relaxed max-w-2xl">
+          Un jury est un groupe d'utilisateurs qui évalue des projets. Commencez par choisir le nom
+          du jury et le type de projet qu'il peut modérer, puis composez le jury. Vous pouvez
+          désormais <strong className="text-foreground font-medium">croiser plusieurs critères</strong> pour
+          affiner le périmètre.
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
-        {/* Add button */}
+      <div className="max-w-3xl mx-auto px-6 py-8 space-y-5">
+        {/* Create link */}
         <button
           onClick={startNew}
           className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
@@ -153,135 +382,17 @@ export default function JuryPage() {
           Créer un jury
         </button>
 
-        {/* Editing form */}
+        {/* Edit form */}
         <AnimatePresence>
           {editing && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="border border-border rounded-lg bg-card">
-                {/* Jury name row */}
-                <div className="flex items-center gap-4 px-6 py-4 border-b border-border">
-                  <label className="text-sm font-semibold text-foreground whitespace-nowrap min-w-[200px]">
-                    Nom <span className="text-primary">*</span>
-                  </label>
-                  <Input
-                    value={editing.name}
-                    onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                    placeholder="Ex : Jury Innovation"
-                    className="flex-1"
-                  />
-                </div>
-
-                {/* Criteria */}
-                {editing.criteria.map((criterion, i) => {
-                  const availableTypes = TYPE_OPTIONS.filter(
-                    (t) => t.value === criterion.type || !usedTypes.includes(t.value)
-                  );
-                  return (
-                    <motion.div
-                      key={criterion.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="border-b border-border last:border-b-0"
-                    >
-                      {/* AND separator */}
-                      {i > 0 && (
-                        <div className="px-6 py-2 bg-secondary/50">
-                          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">ET</span>
-                        </div>
-                      )}
-
-                      {/* Type selector */}
-                      <div className="flex items-center gap-4 px-6 py-4">
-                        <label className="text-sm font-semibold text-foreground whitespace-nowrap min-w-[200px]">
-                          Quels projets modérer ? <span className="text-primary">*</span>
-                        </label>
-                        <div className="flex-1 flex items-center gap-2">
-                          <Select
-                            value={criterion.type}
-                            onValueChange={(val) =>
-                              updateCriterion(criterion.id, { type: val as CriterionType, value: "" })
-                            }
-                          >
-                            <SelectTrigger className="flex-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableTypes.map((t) => (
-                                <SelectItem key={t.value} value={t.value}>
-                                  {t.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {editing.criteria.length > 1 && (
-                            <button
-                              onClick={() => removeCriterion(criterion.id)}
-                              className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Value selector */}
-                      <div className="flex items-center gap-4 px-6 pb-4">
-                        <label className="text-sm font-semibold text-foreground whitespace-nowrap min-w-[200px]">
-                          {VALUE_LABEL_MAP[criterion.type]} <span className="text-primary">*</span>
-                        </label>
-                        <Select
-                          value={criterion.value}
-                          onValueChange={(val) => updateCriterion(criterion.id, { value: val })}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Choisissez une valeur" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {VALUE_OPTIONS[criterion.type].map((v) => (
-                              <SelectItem key={v.value} value={v.value}>
-                                {v.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-
-                {/* Add criterion + Actions */}
-                <div className="px-6 py-4 flex items-center justify-between bg-secondary/30">
-                  <div>
-                    {usedTypes.length < 3 && (
-                      <button
-                        onClick={addCriterion}
-                        className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        Ajouter un critère
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={save}>
-                      Sauvegarder
-                    </Button>
-                    <button
-                      onClick={() => deleteJury(editing.id)}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            <JuryForm
+              key={editing.id}
+              jury={editing}
+              onChange={setEditing}
+              onSave={save}
+              onCancel={() => setEditing(null)}
+              onDelete={() => deleteJury(editing.id)}
+            />
           )}
         </AnimatePresence>
 
@@ -289,41 +400,14 @@ export default function JuryPage() {
         {juries
           .filter((j) => j.id !== editing?.id)
           .map((jury) => (
-            <div key={jury.id} className="border border-border rounded-lg bg-card">
-              <div className="flex items-center gap-4 px-6 py-4 border-b border-border">
-                <label className="text-sm font-semibold text-foreground min-w-[200px]">Nom</label>
-                <span className="text-sm text-foreground">{jury.name}</span>
-              </div>
-              {jury.criteria.map((c, i) => (
-                <div key={c.id}>
-                  {i > 0 && (
-                    <div className="px-6 py-2 bg-secondary/50">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">ET</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4 px-6 py-3 border-b border-border last:border-b-0">
-                    <span className="text-sm text-muted-foreground min-w-[200px]">
-                      {TYPE_OPTIONS.find((t) => t.value === c.type)?.label}
-                    </span>
-                    <Badge variant={c.type}>{VALUE_DISPLAY[c.value] ?? c.value}</Badge>
-                  </div>
-                </div>
-              ))}
-              <div className="px-6 py-3 flex items-center justify-end gap-2 bg-secondary/30">
-                <Button
-                  size="sm"
-                  onClick={() => setEditing({ ...jury, criteria: jury.criteria.map((c) => ({ ...c })) })}
-                >
-                  Sauvegarder
-                </Button>
-                <button
-                  onClick={() => deleteJury(jury.id)}
-                  className="text-muted-foreground hover:text-destructive transition-colors p-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+            <JuryCard
+              key={jury.id}
+              jury={jury}
+              onEdit={() =>
+                setEditing({ ...jury, criteria: jury.criteria.map((c) => ({ ...c })) })
+              }
+              onDelete={() => deleteJury(jury.id)}
+            />
           ))}
       </div>
     </div>
