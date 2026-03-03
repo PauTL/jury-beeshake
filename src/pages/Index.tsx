@@ -141,12 +141,7 @@ function JuryCard({
     >
       {/* Name header */}
       <div className="px-6 py-4 bg-gradient-to-r from-accent/60 to-accent/30">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="text-primary text-sm font-bold">{jury.name.charAt(0).toUpperCase()}</span>
-          </div>
-          <span className="text-[15px] font-semibold text-foreground tracking-tight">{jury.name}</span>
-        </div>
+        <span className="text-[15px] font-semibold text-foreground tracking-tight">{jury.name}</span>
       </div>
 
       {/* Criteria */}
@@ -158,9 +153,7 @@ function JuryCard({
               label={TYPE_OPTIONS.find((t) => t.value === c.type)?.label ?? ""}
               secondary
             >
-              <Badge variant={c.type} className="text-[12px] px-3 py-1">
-                {VALUE_DISPLAY[c.value] ?? c.value}
-              </Badge>
+              <span className="text-sm text-foreground">{VALUE_DISPLAY[c.value] ?? c.value}</span>
             </FieldRow>
           </div>
         ))}
@@ -181,7 +174,7 @@ function JuryCard({
             </span>
           </div>
           <div className="flex items-center gap-1 text-[12px] font-medium text-primary/80 group-hover:text-primary transition-colors">
-            Voir les membres
+            Voir et modifier les membres
             <ChevronRight className="h-3.5 w-3.5" />
           </div>
         </button>
