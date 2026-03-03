@@ -109,11 +109,11 @@ function FieldRow({
 function AndDivider() {
   return (
     <div className="flex items-center gap-3 px-8">
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="h-px flex-1 bg-border" />
       <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em] select-none py-1">
         et
       </span>
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="h-px flex-1 bg-border" />
     </div>
   );
 }
