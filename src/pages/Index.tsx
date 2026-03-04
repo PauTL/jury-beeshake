@@ -427,7 +427,7 @@ export default function JuryPage() {
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto px-8 py-8 space-y-5">
+      <div className="mx-auto px-8 py-8 space-y-5" style={{ maxWidth: "926px" }}>
         {/* Create button */}
         <button
           onClick={startNew}
