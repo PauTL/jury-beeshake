@@ -388,7 +388,7 @@ export default function JuryPage() {
   const membersJury = juries.find((j) => j.id === membersJuryId) ?? null;
 
   const startNew = () => {
-    setEditing({ id: `j_${Date.now()}`, name: "", criteria: [{ id: uid(), type: "category", value: "" }], members: [] });
+    setEditing({ id: `j_${Date.now()}`, name: "", criteria: [{ id: uid(), type: "" as CriterionType, value: "" }], members: [] });
   };
 
   const save = () => {
