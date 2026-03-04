@@ -136,7 +136,7 @@ function JuryCard({
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group rounded-xl bg-card overflow-hidden transition-shadow duration-300"
+      className="group rounded-xl bg-card border border-border/60 overflow-hidden transition-shadow duration-300"
       style={{ boxShadow: "var(--shadow-card)" }}
       onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-card-hover)")}
       onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-card)")}
