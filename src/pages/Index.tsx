@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import MembersModal, { type Member } from "@/components/jury/MembersModal";
 
-type CriterionType = "category" | "stage" | "network";
+type CriterionType = "all" | "category" | "stage" | "network";
 
 interface Criterion {
   id: string;
@@ -24,6 +24,7 @@ interface JuryData {
 }
 
 const TYPE_OPTIONS: { value: CriterionType; label: string }[] = [
+  { value: "all", label: "Tous les projets" },
   { value: "category", label: "Les projets associés à une certaine catégorie" },
   { value: "stage", label: "Les projets associés à une certaine étape" },
   { value: "network", label: "Les projets proposés par un certain réseau" },
@@ -52,6 +53,7 @@ const VALUE_OPTIONS: Record<CriterionType, { value: string; label: string }[]> =
 };
 
 const VALUE_LABEL_MAP: Record<CriterionType, string> = {
+  all: "",
   category: "Catégorie",
   stage: "Étape",
   network: "Réseau",
@@ -213,11 +215,9 @@ function JuryForm({
   const usedTypes = jury.criteria.map((c) => c.type);
 
   const addCriterion = () => {
-    const available = (["category", "stage", "network"] as CriterionType[]).filter(
-      (t) => !usedTypes.includes(t)
-    );
-    if (!available.length) return;
-    onChange({ ...jury, criteria: [...jury.criteria, { id: uid(), type: available[0], value: "" }] });
+    const specificUsed = usedTypes.filter((t) => t !== "all");
+    if (specificUsed.length >= 3) return;
+    onChange({ ...jury, criteria: [...jury.criteria, { id: uid(), type: "" as CriterionType, value: "" }] });
   };
 
   const updateCriterion = (id: string, updates: Partial<Criterion>) => {
@@ -260,6 +260,7 @@ function JuryForm({
           const availableTypes = TYPE_OPTIONS.filter(
             (t) => t.value === criterion.type || !usedTypes.includes(t.value)
           );
+          const needsValue = criterion.type && criterion.type !== "all" && VALUE_OPTIONS[criterion.type];
           return (
             <motion.div
               key={criterion.id}
@@ -273,13 +274,13 @@ function JuryForm({
               <FieldRow label="Quels projets ce jury peut-il modérer ?" required>
                 <div className="flex items-center gap-2">
                   <Select
-                    value={criterion.type}
+                    value={criterion.type || undefined}
                     onValueChange={(val) =>
-                      updateCriterion(criterion.id, { type: val as CriterionType, value: "" })
+                      updateCriterion(criterion.id, { type: val as CriterionType, value: val === "all" ? "all" : "" })
                     }
                   >
                     <SelectTrigger className="flex-1 bg-card">
-                      <SelectValue />
+                      <SelectValue placeholder="Sélectionner..." />
                     </SelectTrigger>
                     <SelectContent>
                       {availableTypes.map((t) => (
@@ -300,24 +301,26 @@ function JuryForm({
                 </div>
               </FieldRow>
 
-              {/* Value */}
-              <FieldRow label={VALUE_LABEL_MAP[criterion.type]} required>
-                <Select
-                  value={criterion.value}
-                  onValueChange={(val) => updateCriterion(criterion.id, { value: val })}
-                >
-                  <SelectTrigger className="bg-card">
-                    <SelectValue placeholder="Choisissez une valeur" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VALUE_OPTIONS[criterion.type].map((v) => (
-                      <SelectItem key={v.value} value={v.value}>
-                        {v.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FieldRow>
+              {/* Value — only if type needs a sub-selection */}
+              {needsValue && (
+                <FieldRow label={VALUE_LABEL_MAP[criterion.type]} required>
+                  <Select
+                    value={criterion.value}
+                    onValueChange={(val) => updateCriterion(criterion.id, { value: val })}
+                  >
+                    <SelectTrigger className="bg-card">
+                      <SelectValue placeholder="Choisissez une valeur" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VALUE_OPTIONS[criterion.type].map((v) => (
+                        <SelectItem key={v.value} value={v.value}>
+                          {v.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FieldRow>
+              )}
             </motion.div>
           );
         })}
@@ -327,7 +330,7 @@ function JuryForm({
 
       {/* Footer */}
       <div className="flex items-center justify-between px-6 py-3.5">
-        {usedTypes.length < 3 ? (
+        {usedTypes.filter((t) => t !== "all").length < 3 ? (
           <button
             onClick={addCriterion}
             className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5"
@@ -385,7 +388,8 @@ export default function JuryPage() {
   const save = () => {
     if (!editing) return;
     if (!editing.name.trim()) { toast.error("Veuillez saisir un nom"); return; }
-    if (editing.criteria.some((c) => !c.value)) { toast.error("Veuillez remplir tous les critères"); return; }
+    if (editing.criteria.some((c) => !c.type)) { toast.error("Veuillez remplir tous les critères"); return; }
+    if (editing.criteria.some((c) => c.type !== "all" && !c.value)) { toast.error("Veuillez remplir tous les critères"); return; }
     const exists = juries.find((j) => j.id === editing.id);
     setJuries(exists ? juries.map((j) => (j.id === editing.id ? editing : j)) : [...juries, editing]);
     setEditing(null);
