@@ -151,12 +151,18 @@ function JuryCard({
         {jury.criteria.map((c, i) => (
           <div key={c.id}>
             {i > 0 && <AndDivider />}
-            <FieldRow
-              label={TYPE_OPTIONS.find((t) => t.value === c.type)?.label ?? ""}
-              secondary
-            >
-              <span className="text-sm text-foreground">{VALUE_DISPLAY[c.value] ?? c.value}</span>
-            </FieldRow>
+            {c.type === "all" ? (
+              <FieldRow label="Tous les projets" secondary>
+                <span className="text-sm text-foreground" />
+              </FieldRow>
+            ) : (
+              <FieldRow
+                label={TYPE_OPTIONS.find((t) => t.value === c.type)?.label ?? ""}
+                secondary
+              >
+                <span className="text-sm text-foreground">{VALUE_DISPLAY[c.value] ?? c.value}</span>
+              </FieldRow>
+            )}
           </div>
         ))}
       </div>
