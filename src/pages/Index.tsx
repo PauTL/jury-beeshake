@@ -30,7 +30,7 @@ const TYPE_OPTIONS: { value: CriterionType; label: string }[] = [
   { value: "network", label: "Les projets proposés par un certain réseau" },
 ];
 
-const VALUE_OPTIONS: Record<CriterionType, { value: string; label: string }[]> = {
+const VALUE_OPTIONS: Partial<Record<CriterionType, { value: string; label: string }[]>> = {
   category: [
     { value: "ecologie", label: "🇫🇷 Écologie  🇬🇧 Ecology" },
     { value: "innovation", label: "🇫🇷 Innovation  🇬🇧 Innovation" },
