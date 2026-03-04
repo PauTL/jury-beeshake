@@ -247,7 +247,7 @@ function JuryForm({
       style={{ boxShadow: "var(--shadow-card-hover)" }}
     >
       {/* Name */}
-      <div className="px-6 py-4 bg-gradient-to-r from-primary/6 to-transparent">
+      <div className="py-4 bg-gradient-to-r from-primary/6 to-transparent">
         <FieldRow label="Nom du jury" required>
           <Input
             value={jury.name}
