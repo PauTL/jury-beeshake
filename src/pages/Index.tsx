@@ -336,7 +336,7 @@ function JuryForm({
 
       {/* Footer */}
       <div className="flex items-center justify-between px-6 py-3.5">
-        {usedTypes.filter((t) => t !== "all").length < 3 ? (
+        {jury.criteria.length < 2 ? (
           <button
             onClick={addCriterion}
             className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5"
