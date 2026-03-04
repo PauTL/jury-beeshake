@@ -247,18 +247,14 @@ function JuryForm({
       style={{ boxShadow: "var(--shadow-card-hover)" }}
     >
       {/* Name */}
-      <div className="py-4 bg-gradient-to-r from-primary/6 to-transparent">
-        <FieldRow label="Nom du jury" required>
-          <Input
-            value={jury.name}
-            onChange={(e) => onChange({ ...jury, name: e.target.value })}
-            placeholder="Ex : Jury Innovation"
-            className="bg-card"
-          />
-        </FieldRow>
-      </div>
-
-      <div className="border-t border-border/60" />
+      <FieldRow label="Nom du jury" required>
+        <Input
+          value={jury.name}
+          onChange={(e) => onChange({ ...jury, name: e.target.value })}
+          placeholder="Ex : Jury Innovation"
+          className="bg-card"
+        />
+      </FieldRow>
 
       {/* Criteria */}
       <AnimatePresence initial={false}>
