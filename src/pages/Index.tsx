@@ -191,7 +191,7 @@ function JuryCard({
       {/* Actions */}
       <div className="border-t border-border/60 flex items-center justify-end gap-2 px-6 py-3">
         <Button size="sm" variant="outline" className="text-[12px] h-8" onClick={onEdit}>
-          Modifier
+          Éditer
         </Button>
         <button
           onClick={onDelete}
